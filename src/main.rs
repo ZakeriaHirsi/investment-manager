@@ -30,7 +30,35 @@ fn main(){
         return;
     }
 
-    Let listener = TCp
+    //start server
+    Let listener = TcpListener::bind(format!(0.0.0.0:8080)).unwrap();
+    println("Server started at port 8080");
+    
+    //handle client
+    for stream in listener.incoming(){
+        match stream {
+            Ok(stream) => {
+                handle_client(stream);
+            }
+            Err(e) => {
+                println("ErrorL: {}", e);
+            }
+        }
+    }
+}
+
+fn handle_client(mut stream: TcpStream){
+    let mut buffer = [0; 1024];
+    let mut request = String::new();
+
+    match stream.read(&mut buffer){
+        Ok(size) => {
+            request.push_str(String::from_utf8_lossy(&buffer[...size]).as_ref());
+            let (status_line, content) = match &*request {
+                
+            }
+        }
+    }
 }
 
 fn set_database() -> Resul<(), PostgresError>{
@@ -43,4 +71,13 @@ fn set_database() -> Resul<(), PostgresError>{
         )",
         &[]
     )?;
+}
+
+//get_id function
+fn get_id(request: &str) -> &str{
+    request.split("/").nth(2).unwrap_or_default().split_whitespace().next().unwrap_or_default();
+}
+
+fn get_user(request: &str) -> Result<User, serde_json::Error>{
+    serde_json::from_str(request.split("\r\n\r\n"),last().unwrap_or_default())
 }
