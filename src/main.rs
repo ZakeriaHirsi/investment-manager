@@ -47,6 +47,8 @@ fn main(){
     }
 }
 
+// Test commit
+
 fn handle_client(mut stream: TcpStream){
     let mut buffer = [0; 1024];
     let mut request = String::new();
@@ -55,7 +57,7 @@ fn handle_client(mut stream: TcpStream){
         Ok(size) => {
             request.push_str(String::from_utf8_lossy(&buffer[...size]).as_ref());
             let (status_line, content) = match &*request {
-                
+
             }
         }
     }
