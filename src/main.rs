@@ -57,8 +57,30 @@ fn handle_client(mut stream: TcpStream){
         Ok(size) => {
             request.push_str(String::from_utf8_lossy(&buffer[...size]).as_ref());
             let (status_line, content) = match &*request {
+                r if request.starts("POST /users") => handle_post_request(r),
+                r if request.starts("GET /users/") => handle_get_request(r),
+                r if request.starts("GET /users") => handle_get_all_request(r),
+                r if request.starts("PUT /users/") => handle_put_request(r),
+                r if request.starts("DELETE /users/") => handle_delete_request(r),
+                _ => (NOT_FOUND, "Not Found".to_string()),
+            };
+            stream.write_all(format!("{}{}", status_line, content).as_bytes()).unwrap();
+        }
+        Err(e) => {
+            println!("Error: {}", e);
+        }
+    }
+}
 
-            }
+//CONTROLLERS
+fn handle_post_request(request: &str) -> (String, String){
+    match(get_get_user_request_body(&request), Client::connect(DB_URL, NoTls)){
+        (Ok(user), Ok(mut client)) => {
+            client.execute(
+                "INSERT INTO users (name, email) VALUES ($1,$2)",
+                &[&user.name, &user.email]
+            )
+            .unwrap();
         }
     }
 }
@@ -83,3 +105,5 @@ fn get_id(request: &str) -> &str{
 fn get_user(request: &str) -> Result<User, serde_json::Error>{
     serde_json::from_str(request.split("\r\n\r\n"),last().unwrap_or_default())
 }
+
+//https://youtu.be/vhNoiBOuW94?si=6ZHLQVxajmNywC4G&t=725
